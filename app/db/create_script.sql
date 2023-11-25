@@ -7,13 +7,13 @@
 -- **********************************************************************************/
 
 -- Check if the database exists
-DROP DATABASE IF EXISTS `Be-opdracht-02`;
+DROP DATABASE IF EXISTS `Mvc-2209a-P4`;
 
 -- Create a new Database
-CREATE DATABASE IF NOT EXISTS `Be-opdracht-02`;
+CREATE DATABASE IF NOT EXISTS `Mvc-2209a-P4`;
 
 -- Use database Mvc-2209a-P4
-Use `Be-opdracht-02`;
+Use `Mvc-2209a-P4`;
 
 
 -- Step: 02
@@ -282,7 +282,7 @@ VALUES
      (1, 5, '2017-06-18', 1, NULL, SYSDATE(6), SYSDATE(6))
     ,(3, 1, '2021-09-26', 1, NULL, SYSDATE(6), SYSDATE(6))
     ,(9, 1, '2021-09-27', 1, NULL, SYSDATE(6), SYSDATE(6))
-    ,(3, 4, '2022-08-01', 1, NULL, SYSDATE(6), SYSDATE(6))
+    ,(4, 4, '2022-08-01', 1, NULL, SYSDATE(6), SYSDATE(6))
     ,(5, 1, '2019-08-30', 1, NULL, SYSDATE(6), SYSDATE(6))
     ,(10, 5, '2020-02-02', 1, NULL, SYSDATE(6), SYSDATE(6));
     

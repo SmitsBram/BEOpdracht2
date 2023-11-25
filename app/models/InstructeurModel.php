@@ -18,11 +18,45 @@ class InstructeurModel
                       ,Mobiel
                       ,DatumInDienst
                       ,AantalSterren
+                      ,IsActief
                 FROM  Instructeur
                 ORDER BY AantalSterren DESC";
 
         $this->db->query($sql);
         return $this->db->resultSet();
+    }
+
+    public function setActive(bool $curState, int $Id)
+    {
+        if ($curState) {
+            $sql = "UPDATE Instructeur
+                    SET IsActief = 0
+                    WHERE Id = :Id";
+        } else {
+            $sql = "UPDATE Instructeur
+                    SET IsActief = 1
+                    WHERE Id = :Id";
+        }
+
+        $this->db->query($sql);
+        $this->db->bind(':Id', $Id);
+
+        $this->db->excecuteWithoutReturn();
+
+        if ($curState) {
+            $sql = "UPDATE VoertuigInstructeur
+                    SET IsActief = 0, DatumGewijzigd = SYSDATE(6)
+                    WHERE InstructeurId = :Id";
+        } else {
+            $sql = "UPDATE VoertuigInstructeur
+                    SET IsActief = 1, DatumGewijzigd = SYSDATE(6)
+                    WHERE InstructeurId = :Id";
+        }
+
+        $this->db->query($sql);
+        $this->db->bind(':Id', $Id);
+
+        $this->db->excecuteWithoutReturn();
     }
 
     public function getToegewezenVoertuigen($Id)
@@ -33,18 +67,52 @@ class InstructeurModel
                        VOER.Kenteken,
                        VOER.Bouwjaar,
                        VOER.Brandstof,
-                       TYVO.RijbewijsCategorie
+                       TYVO.RijbewijsCategorie,
+                       INSTR.IsActief
                 FROM   Voertuig AS VOER
                 INNER JOIN TypeVoertuig AS TYVO
                 ON VOER.TypeVoertuigId = TYVO.Id
+                INNER JOIN Instructeur AS INSTR
+                ON INSTR.Id = :Id
                 WHERE VOER.Id IN (
                 SELECT VoertuigId FROM voertuiginstructeur 
-                WHERE InstructeurId = $Id)
+                WHERE InstructeurId = :Id) AND INSTR.IsActief = 1
                 ORDER BY TYVO.RijbewijsCategorie";
 
         $this->db->query($sql);
 
+        $this->db->bind(':Id', $Id);
+
         return $this->db->resultSet();
+    }
+
+    public function getSickLeaveActivity(int $instructorId, int $CarId)
+    {
+        $sql = "SELECT Id
+                FROM VoertuigInstructeur
+                WHERE VoertuigId = :CarId
+                AND InstructeurId != :instructorId
+                AND DatumAangemaakt < (
+                    SELECT DatumGewijzigd
+                    FROM VoertuigInstructeur
+                    WHERE InstructeurId = :instructorId
+                    AND VoertuigId = :CarId
+                );";
+
+        $this->db->query($sql);
+
+        $this->db->bind(':instructorId', $instructorId);
+        $this->db->bind(':CarId', $CarId);
+
+        $result = $this->db->resultSet();
+
+        foreach ($result as $row) {
+            if (isset($row->Id)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function getVrijeVoertuigen($Id)
@@ -60,7 +128,7 @@ class InstructeurModel
                 INNER JOIN TypeVoertuig AS TYVO
                 ON VOER.TypeVoertuigId = TYVO.Id
                 WHERE VOER.Id NOT IN (
-                    SELECT VoertuigId from voertuiginstructeur
+                    SELECT VoertuigId from voertuiginstructeur WHERE isactief = 1
                 );";
 
         $this->db->query($sql);

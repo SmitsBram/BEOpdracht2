@@ -1,8 +1,8 @@
 <?php
 
-define('DB_HOST', '');
+define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
 define('DB_PASS', '');
-define('DB_NAME', 'register');
-define('URLROOT', 'http://Opdracht2');
-define('APPROOT', dirname(dirname(__FILE__)));
+define('DB_NAME', 'backend-opdracht-3');
+define('URLROOT', 'http://backend-opdracht-2');
+;

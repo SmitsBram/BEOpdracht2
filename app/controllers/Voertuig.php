@@ -12,6 +12,8 @@ class Voertuig extends BaseController
     public function overzichtVoertuigen()
     {
         $result = $this->voertuigModel->getVoertuigen();
+        $inactiveCars = [];
+        $i = 0;
 
         $rows = "";
         $amount = 0;
@@ -22,7 +24,7 @@ class Voertuig extends BaseController
             $backgroundColor = "white";
 
             if ($isOdd) {
-                $backgroundColor = "#edd";
+                $backgroundColor = "#ddd";
             }
 
             if ($voertuig->InstructeurId == null) {
@@ -37,6 +39,12 @@ class Voertuig extends BaseController
                                     person
                                 </span>
                             </a>";
+
+                if (!$this->voertuigModel->isActief($voertuig->InstructeurId)) {
+                    $backgroundColor = "#ff0000";
+                    $inactiveCars[$i] = $voertuig;
+                    $i++;
+                }
             }
 
             $deleteEl = "<a href='/voertuig/deleteVoertuig/$voertuig->Id";

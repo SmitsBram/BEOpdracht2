@@ -9,11 +9,14 @@ class Instructeur extends BaseController
         $this->instructeurModel = $this->model('InstructeurModel');
     }
 
+    public function index()
+    {
+        $this->overzichtInstructeur();
+    }
+
     public function overzichtInstructeur()
     {
         $result = $this->instructeurModel->getInstructeurs();
-
-        //  var_dump($result);
 
         $rows = "";
         $amount = 0;
@@ -21,6 +24,22 @@ class Instructeur extends BaseController
             $date = date_create($instructeur->DatumInDienst);
             $formattedDate = date_format($date, "d-m-Y");
             $amount++;
+
+            $verlofEl = ($instructeur->IsActief) ? "<td>
+                            <a href='" . URLROOT . "/Instructeur/setActive/" . $instructeur->IsActief . "/" . $instructeur->Id . "'>
+                                <span class='material-symbols-outlined'>
+                                    recommend
+                                </span>
+                            </a>
+                        </td>" : "
+                        <td>
+                            <a href='" . URLROOT . "/Instructeur/setActive/" . $instructeur->IsActief . "/" . $instructeur->Id . "'>
+                                <span class='material-symbols-outlined'>
+                                    healing
+                                </span>
+                            </a>
+                        </td>";
+
             $rows .= "<tr>
                         <td>$instructeur->Voornaam</td>
                         <td>$instructeur->Tussenvoegsel</td>
@@ -34,7 +53,8 @@ class Instructeur extends BaseController
                                 directions_car
                                 </span>
                             </a>
-                        </td>            
+                        </td>   
+                        $verlofEl       
                       </tr>";
         }
 
@@ -45,6 +65,17 @@ class Instructeur extends BaseController
         ];
 
         $this->view('Instructeur/overzichtinstructeur', $data);
+    }
+
+    public function setActive($curState, $Id)
+    {
+        $this->instructeurModel->setActive($curState, $Id);
+
+        if ($curState) {
+            header("Location: " . URLROOT . "/Message/Message/Instructeur_is_niet_actief/Instructeur");
+        } else {
+            header("Location: " . URLROOT . "/Message/Message/Instructeur_is_actief/Instructeur");
+        }
     }
 
     public function overzichtVoertuigen($Id, $Message = null)
@@ -60,6 +91,15 @@ class Instructeur extends BaseController
         if ($result != null) {
             $tableRows = "";
             foreach ($result as $voertuig) {
+                $toegewezenEl = ($this->instructeurModel->getSickLeaveActivity($instructeur->Id, $voertuig->Id)) ? "
+                <span class='material-symbols-outlined'>
+                    check_box
+                </span>"
+                    : "
+                <span class='material-symbols-outlined'>
+                    check_box_outline_blank
+                </span>";
+
                 $tableRows .= "<tr>
                                 <td>$voertuig->TypeVoertuig</td>
                                 <td>$voertuig->Type</td>
@@ -67,6 +107,7 @@ class Instructeur extends BaseController
                                 <td>$voertuig->Bouwjaar</td>
                                 <td>$voertuig->Brandstof</td>
                                 <td>$voertuig->RijbewijsCategorie</td>
+                                <td>$toegewezenEl</td>
                                 <th>
                                     <a href='" . URLROOT . "/Voertuig/editVoertuig/" . $voertuig->Id . "'>
                                         <span class='material-symbols-outlined'>
@@ -84,7 +125,11 @@ class Instructeur extends BaseController
                                </tr> ";
             };
         } else {
-            $tableRows = "<tr><td colspan='6'>Nog geen voertuigen toegewezen</td></tr>";
+            if ($instructeur->IsActief) {
+                $tableRows = "<tr><td colspan='6'>Nog geen voertuigen toegewezen</td></tr>";
+            } else {
+                $tableRows = "<tr><td colspan='6'>Instructeur is niet actief</td></tr>";
+            }
         }
 
         $data = [
